@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
 
@@ -17,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
 
     List<String> moviesList;
 
+    SwipeRefreshLayout swipeRefreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         moviesList = new ArrayList<>();
 
         recyclerView = findViewById(R.id.recyclerView);
+        swipeRefreshLayout = findViewById(R.id.swipeRefresLayout);
         recyclerAdapter = new RecyclerAdapter(moviesList);
 
         recyclerView.setAdapter(recyclerAdapter);
@@ -53,5 +57,18 @@ public class MainActivity extends AppCompatActivity {
         moviesList.add("Captain Marvel");
         moviesList.add("Avengers: Endgame");
         moviesList.add("Spider-Man: Far From Home");
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                moviesList.add("Black Window (2020)");
+                moviesList.add("The Eternals (2020)");
+                moviesList.add("Shang-Chi and the Legend of the Ten Rings (2021)");
+                moviesList.add("Doctor Strange in the Multiverse of Madness (2021)");
+                moviesList.add("Thor: Love and Thunder (2021)");
+
+                recyclerAdapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
     }
 }
