@@ -15,9 +15,11 @@ import java.util.List;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
 
     List<String> moviesList;
+    private RecyclerViewClickInterface recyclerViewClickInterface;
 
-    public RecyclerAdapter(List<String> moviesList) {
+    public RecyclerAdapter(List<String> moviesList, RecyclerViewClickInterface recyclerViewClickInterface) {
         this.moviesList = moviesList;
+        this.recyclerViewClickInterface = recyclerViewClickInterface;
     }
 
     @NonNull
@@ -41,7 +43,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return moviesList.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class ViewHolder extends RecyclerView.ViewHolder{
 
         ImageView imageView;
         TextView textView,rowCountTextView;
@@ -53,21 +55,25 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             textView = itemView.findViewById(R.id.textView);
             rowCountTextView = itemView.findViewById(R.id.rowCountTextView);
 
-            itemView.setOnClickListener(this);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    recyclerViewClickInterface.onItemClick(getAdapterPosition());
+                }
+            });
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    moviesList.remove(getAdapterPosition());
-                    notifyItemRemoved(getAdapterPosition());
+                   /* moviesList.remove(getAdapterPosition());
+                    notifyItemRemoved(getAdapterPosition());*/
+
+                   recyclerViewClickInterface.onLongItemClick(getAdapterPosition());
+
                     return true;
                 }
             });
 
         }
 
-        @Override
-        public void onClick(View v) {
-            Toast.makeText(v.getContext(), moviesList.get(getAdapterPosition()), Toast.LENGTH_SHORT).show();
-        }
     }
 }
