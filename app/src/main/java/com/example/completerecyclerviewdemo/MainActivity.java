@@ -1,16 +1,24 @@
 package com.example.completerecyclerviewdemo;
 
+import android.graphics.Canvas;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.os.Bundle;
-import android.widget.Toast;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewClickInterface{
 
@@ -72,7 +80,72 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
     }
+
+    String deletedMovie = null;
+    List<String> archivedMovies = new ArrayList<>();
+
+    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            final int position = viewHolder.getAdapterPosition();
+            switch (direction) {
+                case ItemTouchHelper.LEFT:
+
+                    deletedMovie = moviesList.get(position);
+
+                    moviesList.remove(position);
+                    recyclerAdapter.notifyItemRemoved(position);
+                    Snackbar.make(recyclerView,deletedMovie, Snackbar.LENGTH_LONG)
+                            .setAction("Undo", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    moviesList.add(position,deletedMovie);
+                                    recyclerAdapter.notifyItemInserted(position);
+                                }
+                            }).show();
+                    break;
+                case ItemTouchHelper.RIGHT:
+                    final String moviesName = moviesList.get(position);
+                    archivedMovies.add(moviesName);
+
+                    moviesList.remove(position);
+                    recyclerAdapter.notifyItemRemoved(position);
+                    Snackbar.make(recyclerView,moviesName + ", Archived. ", Snackbar.LENGTH_LONG)
+                            .setAction("Undo", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    archivedMovies.remove(archivedMovies.lastIndexOf(moviesName));
+                                    moviesList.add(position, moviesName);
+                                    recyclerAdapter.notifyItemInserted(position);
+                                }
+                            }).show();
+                    break;
+            }
+        }
+
+        @Override
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+            new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent))
+                    .addSwipeLeftActionIcon(R.drawable.ic_delete_black_24dp)
+                    .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this,R.color.colorPrimaryDark))
+                    .addSwipeRightActionIcon(R.drawable.ic_archive_black_24dp)
+                    .create()
+                    .decorate();
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+        }
+    };
 
     @Override
     public void onItemClick(int position) {
@@ -81,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
     @Override
     public void onLongItemClick(int position) {
-        moviesList.remove(position);
-        recyclerAdapter.notifyItemRemoved(position);
+//        moviesList.remove(position);
+//        recyclerAdapter.notifyItemRemoved(position);
     }
 }
